@@ -1,0 +1,263 @@
+{
+  "a6f14996aff944a496e63d55502a2bbb": [
+    {
+      "time": "2026-09-05 09:51:20",
+      "source": "/predict-quick",
+      "image": "-69.3319,50.0019.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.54
+    },
+    {
+      "time": "2026-09-05 09:51:28",
+      "source": "/predict",
+      "image": "-62.3956,50.2942.jpg",
+      "prediction": "wildfire",
+      "confidence": 98.36
+    },
+    {
+      "time": "2026-09-05 09:51:53",
+      "source": "/predict-quick",
+      "image": "-113.997855,51.109633.jpg",
+      "prediction": "nowildfire",
+      "confidence": 93.23
+    },
+    {
+      "time": "2026-09-05 09:51:53",
+      "source": "/predict-quick",
+      "image": "-114.088783,51.150454.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.93
+    },
+    {
+      "time": "2026-09-05 09:51:53",
+      "source": "/predict-quick",
+      "image": "-114.135617,51.035372.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.93
+    },
+    {
+      "time": "2026-09-05 09:51:53",
+      "source": "/predict-quick",
+      "image": "-122.803331,49.237998.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.98
+    },
+    {
+      "time": "2026-09-05 09:51:53",
+      "source": "/predict-quick",
+      "image": "-122.86303,49.184884.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.98
+    },
+    {
+      "time": "2026-09-05 09:51:53",
+      "source": "/predict-quick",
+      "image": "-122.92567,49.114227.jpg",
+      "prediction": "nowildfire",
+      "confidence": 80.6
+    },
+    {
+      "time": "2026-09-05 09:51:54",
+      "source": "/predict-quick",
+      "image": "-122.978507,49.179268.jpg",
+      "prediction": "nowildfire",
+      "confidence": 98.12
+    },
+    {
+      "time": "2026-09-05 09:51:54",
+      "source": "/predict-quick",
+      "image": "-123.01435,49.162883.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.67
+    },
+    {
+      "time": "2026-09-05 09:51:54",
+      "source": "/predict-quick",
+      "image": "-123.130508,49.12536.jpg",
+      "prediction": "nowildfire",
+      "confidence": 71.06
+    },
+    {
+      "time": "2026-09-05 09:51:54",
+      "source": "/predict-quick",
+      "image": "-123.188093,49.108024.jpg",
+      "prediction": "nowildfire",
+      "confidence": 97.0
+    },
+    {
+      "time": "2026-09-05 09:51:54",
+      "source": "/predict-quick",
+      "image": "-64.2372,51.3344.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.89
+    },
+    {
+      "time": "2026-09-05 09:51:54",
+      "source": "/predict-quick",
+      "image": "-64.46741,48.53148.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.81
+    },
+    {
+      "time": "2026-09-05 09:51:55",
+      "source": "/predict-quick",
+      "image": "-64.84903,50.33873.jpg",
+      "prediction": "wildfire",
+      "confidence": 100.0
+    },
+    {
+      "time": "2026-09-05 09:51:55",
+      "source": "/predict-quick",
+      "image": "-65.3161,51.4008.jpg",
+      "prediction": "wildfire",
+      "confidence": 95.86
+    },
+    {
+      "time": "2026-09-05 09:51:55",
+      "source": "/predict-quick",
+      "image": "-67.0632,47.94005.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.94
+    },
+    {
+      "time": "2026-09-05 09:51:55",
+      "source": "/predict-quick",
+      "image": "-68.166,49.2427.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.5
+    },
+    {
+      "time": "2026-09-05 09:51:55",
+      "source": "/predict-quick",
+      "image": "-69.3319,50.0019.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.54
+    },
+    {
+      "time": "2026-09-05 09:51:55",
+      "source": "/predict-quick",
+      "image": "-70.92194,45.35222.jpg",
+      "prediction": "wildfire",
+      "confidence": 98.94
+    },
+    {
+      "time": "2026-09-05 09:51:56",
+      "source": "/predict-quick",
+      "image": "-71.04372,47.07195.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.87
+    },
+    {
+      "time": "2026-09-05 09:51:56",
+      "source": "/predict-quick",
+      "image": "-71.16524,50.91757.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.72
+    },
+    {
+      "time": "2026-09-05 09:51:56",
+      "source": "/predict-quick",
+      "image": "-71.33076,45.61931.jpg",
+      "prediction": "wildfire",
+      "confidence": 83.26
+    },
+    {
+      "time": "2026-09-05 09:51:56",
+      "source": "/predict-quick",
+      "image": "-71.38069,45.58513.jpg",
+      "prediction": "wildfire",
+      "confidence": 97.85
+    },
+    {
+      "time": "2026-09-05 09:51:56",
+      "source": "/predict-quick",
+      "image": "-71.39227,48.42386.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.96
+    },
+    {
+      "time": "2026-09-05 09:51:56",
+      "source": "/predict-quick",
+      "image": "-71.85796,53.31295.jpg",
+      "prediction": "wildfire",
+      "confidence": 99.92
+    },
+    {
+      "time": "2026-09-05 09:51:57",
+      "source": "/predict-quick",
+      "image": "-72.46881,48.46163.jpg",
+      "prediction": "wildfire",
+      "confidence": 87.46
+    },
+    {
+      "time": "2026-09-05 09:51:57",
+      "source": "/predict-quick",
+      "image": "-73.486371,45.487478.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.98
+    },
+    {
+      "time": "2026-09-05 09:51:57",
+      "source": "/predict-quick",
+      "image": "-73.48647,45.58342.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.62
+    },
+    {
+      "time": "2026-09-05 09:51:57",
+      "source": "/predict-quick",
+      "image": "-73.59165,45.617706.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.98
+    },
+    {
+      "time": "2026-09-05 09:51:57",
+      "source": "/predict-quick",
+      "image": "-73.711366,45.612505.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.96
+    },
+    {
+      "time": "2026-09-05 09:51:58",
+      "source": "/predict-quick",
+      "image": "-73.77244,45.540137.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.94
+    },
+    {
+      "time": "2026-09-05 09:52:17",
+      "source": "/predict-explain",
+      "image": "-62.3956,50.2942.jpg",
+      "prediction": "wildfire",
+      "confidence": 98.36
+    },
+    {
+      "time": "2026-09-05 09:52:38",
+      "source": "/predict-explain",
+      "image": "-73.43705,45.463087.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.81
+    },
+    {
+      "time": "2026-09-05 09:53:08",
+      "source": "/predict",
+      "image": "-73.43705,45.463087.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.81
+    },
+    {
+      "time": "2026-09-05 09:53:08",
+      "source": "/predict",
+      "image": "-73.44983,45.456918.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.98
+    },
+    {
+      "time": "2026-09-05 09:53:08",
+      "source": "/predict",
+      "image": "-73.45209,45.621568.jpg",
+      "prediction": "nowildfire",
+      "confidence": 99.93
+    }
+  ]
+}
