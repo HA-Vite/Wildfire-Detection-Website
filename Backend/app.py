@@ -12,17 +12,12 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-# Advanced environment tweaking to reduce memory overhead and block memory leaks
-tf.config.set_visible_devices([], 'GPU')
-tf.compat.v1.disable_eager_execution()
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "dist")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app, supports_credentials=True)
 
-# Limiter Engine configuration to avoid flooding pressure
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
@@ -30,7 +25,6 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
-# Core models and catalogs configurations paths
 MODEL_PATH = os.path.join(BASE_DIR, "best_model.keras")
 QUICK_IMAGES_DIR = os.path.join(os.path.dirname(BASE_DIR), "dist", "quickimages")
 history_path = os.path.join(BASE_DIR, "scan_history.json")
@@ -40,28 +34,20 @@ IMG_SIZE = (224, 224)
 CLASS_NAMES = ["nowildfire", "wildfire"]
 
 print("Loading model inside core inference pipeline...")
-# Allocating a clean isolated graphic frame session to stabilize memory utilization
-global_graph = tf.compat.v1.get_default_graph()
 model = tf.keras.models.load_model(MODEL_PATH)
 print("Model loaded successfully!")
 
 def run_ai_inference(image_obj):
-    global global_graph
     image = image_obj.convert("RGB").resize(IMG_SIZE)
     image_array = np.array(image, dtype=np.float32)
     image_array = image_array / 255.0
     image_array = np.expand_dims(image_array, axis=0)
     
-    # Executing calculation array within the boundaries of the main memory graph
-    with global_graph.as_default():
-        prediction = model.predict(image_array, verbose=0)
-        
+    prediction = model.predict(image_array, verbose=0)
     predicted_index = int(np.argmax(prediction))
+    
     predicted_class = CLASS_NAMES[predicted_index]
     confidence = float(prediction[predicted_index] * 100)
-    
-    # Destroys and flushes session variables immediately to prevent OOM
-    tf.keras.backend.clear_session()
     
     return str(predicted_class).lower(), round(confidence, 2)
 
@@ -165,9 +151,8 @@ def predict_quick():
         print(f"[EXCEPTION LOG] -> {str(e)}")
         return jsonify({"error": "Internal node system error during catalog scanning."}), 500
 
-# Initializing advanced layout features extensions routing mechanisms
 from extensions import register_extensions
-register_extensions(app, run_ai_inference, _client_id, _records_for)
+register_extensions(app, run_ai_inference, _client_id, _records_for, _append_record, _HISTORY_LOCK, history_path)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
