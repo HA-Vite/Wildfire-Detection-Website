@@ -10,7 +10,6 @@ import io
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Define the frontend build directory (Vite outputs a 'dist' folder by default)
 FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "dist")
 
 # Initialize Flask app and map it to serve static assets from the frontend build folder
