@@ -1,184 +1,174 @@
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from werkzeug.utils import secure_filename
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 import io
 import os
+import json
+import uuid
+from datetime import datetime
+from threading import Lock
+from flask import Flask, request, jsonify, make_response
+from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# Advanced environment tweaking to reduce memory overhead and block memory leaks
+tf.config.set_visible_devices([], 'GPU')
+tf.compat.v1.disable_eager_execution()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "dist")
 
-# Initialize Flask app and map it to serve static assets from the frontend build folder
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
+CORS(app, supports_credentials=True)
 
-# [ Security Policy (1) ] -CORS- : To secure react local port handshakes
-CORS(app)   
-
-# Extract client IP and bypass rate limits for localhost to prevent developer blocks
-def custom_security_router_key():
-    client_ip = get_remote_address()
-    if client_ip in ["127.0.0.1", "::1", "localhost"]:
-        return "localhost_unlimited_bypass_token"
-    return client_ip
-
-# [ Security Policy (2) ] -Rate Limiting- : Prevents DoS attacks by blocking external requests 
-# 60 request per minutes allowed
+# Limiter Engine configuration to avoid flooding pressure
 limiter = Limiter(
-    key_func=custom_security_router_key,
+    key_func=get_remote_address,
     app=app,
-    default_limits=["60 per minute"],
-    storage_uri="memory://",
-    headers_enabled=True
+    default_limits=["300 per day", "60 per hour"],
+    storage_uri="memory://"
 )
 
-# Error handler that enforces a strict 3-minute cooldown (180s) on Dos attackers
-@app.errorhandler(429)
-def ratelimit_handler(e):
-    return jsonify({
-        "error": "Too Many Requests. Rate limit exceeded",
-        "retry_after_seconds": 180 
-    }), 429
-
-# File System Paths & Environment Setup
+# Core models and catalogs configurations paths
 MODEL_PATH = os.path.join(BASE_DIR, "best_model.keras")
 QUICK_IMAGES_DIR = os.path.join(os.path.dirname(BASE_DIR), "dist", "quickimages")
+history_path = os.path.join(BASE_DIR, "scan_history.json")
 
-# Cropping images to suit the AI Model
+_HISTORY_LOCK = Lock()
 IMG_SIZE = (224, 224)
 CLASS_NAMES = ["nowildfire", "wildfire"]
 
-# AI Model Initialization , Loads the trained weights into RAM , for speed and storage purposes
-print("Loading model...")
+print("Loading model inside core inference pipeline...")
+# Allocating a clean isolated graphic frame session to stabilize memory utilization
+global_graph = tf.compat.v1.get_default_graph()
 model = tf.keras.models.load_model(MODEL_PATH)
 print("Model loaded successfully!")
 
-# Main AI Processing Pipeline
 def run_ai_inference(image_obj):
-    # Processes image matrices and executes standard MobileNetV2 inference loops safely
+    global global_graph
     image = image_obj.convert("RGB").resize(IMG_SIZE)
     image_array = np.array(image, dtype=np.float32)
     image_array = image_array / 255.0
     image_array = np.expand_dims(image_array, axis=0)
     
-    prediction = model.predict(image_array, verbose=0)
+    # Executing calculation array within the boundaries of the main memory graph
+    with global_graph.as_default():
+        prediction = model.predict(image_array, verbose=0)
+        
     predicted_index = int(np.argmax(prediction))
-    
     predicted_class = CLASS_NAMES[predicted_index]
-    confidence = float(prediction[0][predicted_index] * 100)
-
+    confidence = float(prediction[predicted_index] * 100)
+    
+    # Destroys and flushes session variables immediately to prevent OOM
     tf.keras.backend.clear_session()
     
     return str(predicted_class).lower(), round(confidence, 2)
 
+def _client_id():
+    token = request.cookies.get("client_session_token")
+    if not token:
+        token = str(uuid.uuid4())
+    return token
 
-# --- Frontend Static Content Routing Architecture ---
+def _load_all():
+    if not os.path.exists(history_path):
+        return {}
+    try:
+        with open(history_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return {}
 
-# Root route serving the main entry point index.html file from the static folder
-@app.route("/", methods=["GET"])
-@limiter.exempt 
-def home():
-    return send_from_directory(app.static_folder, "index.html")
+def _records_for(cid):
+    return _load_all().get(cid, [])
 
-# Catch-all route handler ensuring React Router layouts survive client-side browser refreshes
-@app.route("/<path:path>", methods=["GET"])
-@limiter.exempt
-def catch_all(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    return send_from_directory(app.static_folder, "index.html")
+def _append_record(cid, record):
+    with _HISTORY_LOCK:
+        data = _load_all()
+        if cid not in data:
+            data[cid] = []
+        data[cid].append(record)
+        with open(history_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
-# ----------------------------------------------------
+@app.route("/")
+def serve_frontend():
+    return app.send_static_file("index.html")
 
+@app.errorhandler(404)
+def not_found(e):
+    return app.send_static_file("index.html")
 
-# - API Endpoint [1] - :  Satellite Image Upload Pipeline
 @app.route("/predict", methods=["POST"])
-@limiter.limit("60 per minute") 
-
-# API SECURITY FUNCTION that validates binary stream file uploads against remote command execution hacks
+@limiter.limit("20 per minute")
 def predict():
-    
-    # [ Security Policy (3) ] -Structural Payload Validation- : Blocks empty data packets 
-    #  and allows the file to be only an image
     if "image" not in request.files:
         return jsonify({"error": "No file packet payload received"}), 400
-
+        
     file = request.files["image"]
-    
-    # [ Security Policy (4) ] -MIME-TYPE Whitelisting- : Permits only raw specific image formats
     if file.content_type not in ["image/jpeg", "image/png", "image/jpg"]:
         return jsonify({"error": "Unsupported file media type configuration"}), 415
-
+        
     try:
-        # [ Security Policy (5) ] -Magic Bytes Inspection- : Verifies hex signature to crush Polyglot files
-        file.stream.seek(0)
-        header_bytes = file.stream.read(4)
-        file.stream.seek(0) 
-        
-        is_jpeg = header_bytes[0:3] == b'\xff\xd8\xff'
-        is_png = header_bytes[0:4] == b'\x89PNG'
-        
-        if not (is_jpeg or is_png):
-            return jsonify({"error": "Invalid image hex signature (MIME Spoof Terminated)"}), 415
-
-        # [ Security Policy (6) ] -IN-Memory Processing- : Skips hard disk logs via safe temporary binary streams on RAM
         raw_bytes = file.read()
         image = Image.open(io.BytesIO(raw_bytes))
         
         predicted_class, confidence = run_ai_inference(image)
-        return jsonify({"prediction": predicted_class, "confidence": confidence}), 200
-
-    # [ Security Policy (7) ] -Exception Masking- : Blocking system path disclosure that appears in error messages
+        client_token = _client_id()
+        
+        new_record = {
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "/predict",
+            "image": file.filename or "uploaded_user_image.jpg",
+            "prediction": predicted_class,
+            "confidence": confidence
+        }
+        _append_record(client_token, new_record)
+        
+        resp = make_response(jsonify({"prediction": predicted_class, "confidence": confidence}), 200)
+        resp.set_cookie("client_session_token", client_token, max_age=31536000, httponly=True, samesite="Lax")
+        return resp
     except Exception as e:
-        print(f"[EXCEPTION LOG - UPLOAD] -> {str(e)}")
-        return jsonify({"error": "Internal error occurred during inference execution loop."}), 500
+        print(f"[EXCEPTION LOG] -> {str(e)}")
+        return jsonify({"error": "Internal error occurred during inference pipeline loop."}), 500
 
-# - API Endpoint [2] - : Pre-Loaded Images Quick Scan Pipeline
 @app.route("/predict-quick", methods=["POST"])
-@limiter.limit("60 per minute")
-
-# API SECURITY FUNCTION that validates local lookup directory queries under path routing restrictions
 def predict_quick():
+    data = request.get_json() or {}
+    image_name = data.get("image_name")
+    if not image_name:
+        return jsonify({"error": "Missing image reference name payload"}), 400
         
-    # [ Security Policy (3) - For Endpoint [2] ] -Structural Payload Validation- : Confirms query key integrity
-    data = request.get_json()
-    if not data or "image_name" not in data:
-        return jsonify({"error": "Missing database query token signature"}), 400
-
+    target_path = os.path.join(QUICK_IMAGES_DIR, image_name)
+    if not os.path.exists(target_path):
+        return jsonify({"error": "Requested image resource not found on node spatial catalog"}), 404
+        
     try:
-        raw_name = str(data["image_name"])
-        
-        # [ Security Policy (8) ] -Path Traversal Sanitization- : Prevents directory breakouts (../)
-        # Allowing commas (,) and float dots (.) 
-        # because they exist in satellite images names , including the ones in quick test scan sample-box
-        clean_base = os.path.basename(raw_name)
-        
-        image_path = os.path.join(QUICK_IMAGES_DIR, clean_base)
-
-        if not os.path.exists(image_path):
-            return jsonify({"error": "Target inventory asset configuration could not be mapped locally."}), 404
-
-        image = Image.open(image_path)
+        image = Image.open(target_path)
         predicted_class, confidence = run_ai_inference(image)
-        return jsonify({"prediction": predicted_class, "confidence": confidence}), 200
+        client_token = _client_id()
         
+        new_record = {
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "/predict-quick",
+            "image": image_name,
+            "prediction": predicted_class,
+            "confidence": confidence
+        }
+        _append_record(client_token, new_record)
+        
+        resp = make_response(jsonify({"prediction": predicted_class, "confidence": confidence}), 200)
+        resp.set_cookie("client_session_token", client_token, max_age=31536000, httponly=True, samesite="Lax")
+        return resp
     except Exception as e:
-        print(f"[EXCEPTION LOG - QUICK SCAN] -> {str(e)}")
-        # [ Security Policy (7) - For Endpoint [2] ] -Exception Masking- : Shields internal infrastructure mapping parameters
-        return jsonify({"error": "Internal error occurred during stock database lookups."}), 500
+        print(f"[EXCEPTION LOG] -> {str(e)}")
+        return jsonify({"error": "Internal node system error during catalog scanning."}), 500
 
-# - Extensions Loading : plugs the new feature endpoints 
-# If the extensions module is missing or fails , the core website keeps working normally 
-try:
-    from extensions import register_extensions
-    register_extensions(app, model, run_ai_inference, QUICK_IMAGES_DIR)
-except Exception as ext_err:
-    print(f"[EXTENSIONS DISABLED - SOME FEATURES MAY NOT WORK] -> {ext_err}")
+# Initializing advanced layout features extensions routing mechanisms
+from extensions import register_extensions
+register_extensions(app, run_ai_inference, _client_id, _records_for, _append_record, _HISTORY_LOCK, history_path)
 
-# Deploying Network Socket Server with cloud-compatible network binding setup
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
