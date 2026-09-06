@@ -1,6 +1,7 @@
-Flask
+flask
 flask-cors
-Flask-Limiter
-tensorflow
+flask-limiter
+Pillow
 numpy
-pillow
+tensorflow
+gunicorn
