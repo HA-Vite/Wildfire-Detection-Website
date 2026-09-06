@@ -70,6 +70,8 @@ def run_ai_inference(image_obj):
     
     predicted_class = CLASS_NAMES[predicted_index]
     confidence = float(prediction[0][predicted_index] * 100)
+
+    tf.keras.backend.clear_session()
     
     return str(predicted_class).lower(), round(confidence, 2)
 
