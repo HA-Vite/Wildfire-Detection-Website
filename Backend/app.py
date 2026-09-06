@@ -46,7 +46,7 @@ def ratelimit_handler(e):
 
 # File System Paths & Environment Setup
 MODEL_PATH = os.path.join(BASE_DIR, "best_model.keras")
-QUICK_IMAGES_DIR = os.path.join(os.path.dirname(BASE_DIR), "public", "quickimages")
+QUICK_IMAGES_DIR = os.path.join(os.path.dirname(BASE_DIR), "dist", "quickimages")
 
 # Cropping images to suit the AI Model
 IMG_SIZE = (224, 224)
