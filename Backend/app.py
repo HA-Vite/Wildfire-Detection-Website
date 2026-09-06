@@ -167,7 +167,7 @@ def predict_quick():
 
 # Initializing advanced layout features extensions routing mechanisms
 from extensions import register_extensions
-register_extensions(app, run_ai_inference, _client_id, _records_for, _append_record, _HISTORY_LOCK, history_path)
+register_extensions(app, run_ai_inference, _client_id, _records_for)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
